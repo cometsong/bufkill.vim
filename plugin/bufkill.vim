@@ -3,7 +3,7 @@
 " Version:	1.11
 " Last Change:	11 December 2012
 
-" Introduction:{{{1
+" Introduction: {{{1
 " Basic Usage:
 " When you want to unload/delete/wipe a buffer, use:
 "   :bun/:bd/:bw to close the window as well (vim command), or
@@ -264,23 +264,6 @@ function! <SID>BufKill(cmd, bang) "{{{1
   let s:BufKillBufferToKill = bufnr('%')
   let s:BufKillBufferToKillPath = expand('%:p')
 
-<<<<<<< HEAD
-  " If the buffer is already '[No File]' then doing enew won't create a new
-  " buffer, hence the bd/bw command will kill the current buffer and take
-  " the window with it... so check for this case
-  " However - if it's a scratch buffer with text enew should create a new
-  " buffer, so don't return if it is a scratch buffer
-  if bufname('%') == '' && ! &modified && &modifiable
-    " No buffer to kill, ensure not scratch buffer
-    if &buftype == 'nofile' && &swapfile == 0
-      " Is scratch buffer, keep processing
-    else
-      return
-    endif
-  endif
-
-=======
->>>>>>> FETCH_HEAD
   " Just to make sure, check that this matches the buffer currently pointer to
   " by w:BufKillIndex - else I've stuffed up
   if s:BufKillBufferToKill != w:BufKillList[w:BufKillIndex]
@@ -289,11 +272,7 @@ function! <SID>BufKill(cmd, bang) "{{{1
   endif
 
   " If the buffer is modified, and a:bang is not set, give the same kind of
-<<<<<<< HEAD
-  " error (or confirmation) as normal bw/bd
-=======
   " error (or confirmation) as normal bun/bw/bd
->>>>>>> FETCH_HEAD
   if &modified && strlen(a:bang) == 0
     if exists('g:BufKillActionWhenModifiedFileToBeKilled')
       let s:BufKillActionWhenModifiedFileToBeKilled = g:BufKillActionWhenModifiedFileToBeKilled
@@ -400,11 +379,6 @@ function! <SID>BufKill(cmd, bang) "{{{1
   if bufexists(s:BufKillBufferToKill)
     let killCmd = a:cmd . a:bang . s:BufKillBufferToKill
     exec killCmd
-<<<<<<< HEAD
-  else
-  endif
-
-=======
   endif
 
   " Restore position if saved.  Needed on console vim, at least, to restore correct column
@@ -443,30 +417,20 @@ function! <SID>SwitchToNewBuffer(bang) "{{1
   exec 'b' . old_bufnum
   silent normal! u
   exec 'b' . new_bufnum
->>>>>>> FETCH_HEAD
 endfunction
 
 function! <SID>GotoBuffer(cmd, bang) "{{{1
   "Function to display the previous buffer for the specified window
   " a:cmd is one of
-<<<<<<< HEAD
-  "     bw - Wiping the current buffer
-  "     bd - Deleting the current buffer
-=======
   "     bun - Unloading the current buffer
   "     bd - Deleting the current buffer
   "     bw - Wiping the current buffer
->>>>>>> FETCH_HEAD
   "     bufback - stepping back through the list
   "     bufforward - stepping forward through the list
   "     # - swap to alternate buffer, if one exists. Use this instead of
   "         Ctrl-^, in order to swap to the previous column of the alternate
   "         file, which does not happen with regular Ctrl-^.
 
-<<<<<<< HEAD
-  if (a:cmd=='bw' || a:cmd=='bd')
-    let w:BufKillLastCmd = a:cmd . a:bang
-=======
   if (a:cmd=='bun' || a:cmd=='bd' || a:cmd=='bw')
     let killing = 1
   else
@@ -474,7 +438,6 @@ function! <SID>GotoBuffer(cmd, bang) "{{{1
   endif
 
   if killing
->>>>>>> FETCH_HEAD
     " Handle the 'auto' setting for
     " g:BufKillFunctionSelectingValidBuffersToDisplay
     let validityFunction = g:BufKillFunctionSelectingValidBuffersToDisplay
@@ -496,10 +459,6 @@ function! <SID>GotoBuffer(cmd, bang) "{{{1
     endif
     let w:BufKillIndex -= 1
   else
-<<<<<<< HEAD
-    let w:BufKillLastCmd = 'bufchange'
-=======
->>>>>>> FETCH_HEAD
     " Should only be used with undeleted (and unwiped) buffers
     let validityFunction = 'buflisted'
 
@@ -513,19 +472,9 @@ function! <SID>GotoBuffer(cmd, bang) "{{{1
         echom "E23: No alternate file (error simulated by bufkill.vim)"
         return
       endif
-<<<<<<< HEAD
-      if bufnum == bufnr('.')
-        " If the alternate buffer is also the current buffer, do nothing
-        " Update: I've seen cases (vim 7.2.411) where we end up here, though
-        " :ls suggests bufnr('.') is returning the wrong value.  So allow
-        " the command to proceed...
-        echom "bufkill: bufnr('#')=".bufnr('#')." and bufnr('.')=".bufnr('.')." - trying anyway"
-        " return
-=======
       if bufnum == bufnr('%')
         " If the alternate buffer is also the current buffer, do nothing
         return
->>>>>>> FETCH_HEAD
       elseif !buflisted(bufnum)
         " Vim just ignores the command in this case, so we'll do likewise
         " Update: it seems it no longer ignores the command in this case
@@ -541,50 +490,6 @@ function! <SID>GotoBuffer(cmd, bang) "{{{1
     endif
   endif
 
-<<<<<<< HEAD
-  " Find the most recent buffer to display
-  if w:BufKillIndex < 0 || w:BufKillIndex >= len(w:BufKillList)
-    let newBuffer = -1
-  else
-    let newBuffer = w:BufKillList[w:BufKillIndex]
-    let newColumn = w:BufKillColumnList[w:BufKillIndex]
-    exec 'let validityResult = '.validityFunction.'(newBuffer)'
-    while !validityResult
-      call remove(w:BufKillList, w:BufKillIndex)
-      call remove(w:BufKillColumnList, w:BufKillIndex)
-      if a:cmd != 'bufforward'
-        let w:BufKillIndex -= 1
-        " No change needed for bufforward since we just deleted the element
-        " being pointed to, so effectively, we moved forward one spot
-      endif
-      if w:BufKillIndex < 0 || w:BufKillIndex >= len(w:BufKillList)
-        let newBuffer = -1
-        break
-      endif
-      let newBuffer = w:BufKillList[w:BufKillIndex]
-      let newColumn = w:BufKillColumnList[w:BufKillIndex]
-      exec 'let validityResult = '.validityFunction.'(newBuffer)'
-    endwhile
-  endif
-
-  " Handle the case of no valid buffer number to display
-  let cmd = ''
-  if newBuffer == -1
-    " Ensure index is meaningful
-    if a:cmd == 'bufforward'
-      let w:BufKillIndex = len(w:BufKillList) - 1
-    else
-      let w:BufKillIndex = 0
-    endif
-    " Reset lastCmd since didn't work
-    let w:BufKillLastCmd = ''
-    echom 'BufKill: already at the limit of the BufKill list'
-    " Leave cmd empty to do nothing
-  else
-    let cmd = 'b' . a:bang . newBuffer . "|call cursor(line('.')," . newColumn . ')'
-  endif
-  exec cmd
-=======
   while 1
     if w:BufKillIndex < 0
       let w:BufKillIndex = 0
@@ -633,7 +538,6 @@ function! <SID>GotoBuffer(cmd, bang) "{{{1
       " being pointed to, so effectively, we moved forward one spot
     endif
   endwhile
->>>>>>> FETCH_HEAD
 
 endfunction   " GotoBuffer
 
@@ -648,22 +552,9 @@ function! <SID>UpdateList(event) "{{{1
   if !exists('w:BufKillIndex')
     let w:BufKillIndex = -1
   endif
-<<<<<<< HEAD
-  if !exists('w:BufKillLastCmd')
-    let w:BufKillLastCmd = ''
-  endif
-  let bufferNum = bufnr('%')
-
-  if (w:BufKillLastCmd=~'bufchange')
-    " When stepping through files, the w:BufKillList should not be changed
-    " here, only by the GotoBuffer command since the files must already
-    " exist in the list to jump to them.
-  else
-=======
   let bufferNum = bufnr('%')
 
   if (w:BufKillIndex == -1) || (w:BufKillList[w:BufKillIndex] != bufferNum)
->>>>>>> FETCH_HEAD
     " Increment index
     let w:BufKillIndex += 1
     if w:BufKillIndex < len(w:BufKillList)
@@ -687,12 +578,6 @@ function! <SID>UpdateList(event) "{{{1
     let w:BufKillList += [bufferNum]
   endif
 
-<<<<<<< HEAD
-  " Reset since command processed
-  let w:BufKillLastCmd = ''
-
-=======
->>>>>>> FETCH_HEAD
 endfunction   " UpdateList
 
 function! <SID>UpdateLastColumn(event) "{{{1
@@ -755,11 +640,6 @@ function! <SID>RestoreWindowPos() "{{{1
   exec 'normal! ' . s:BufKillWindowPos . 'w'
 endfunction
 
-<<<<<<< HEAD
-" Autocommands {{{1
-"
-augroup BufKill
-=======
 function! <SID>SaveView() "{{{1
   " Function to save the current view to w:BufKillSavedView.  This has been
   " found necessary on console vim in particular, in order return to the
@@ -782,18 +662,13 @@ endfunction   " RestoreView
 "
 augroup BufKill
 autocmd!
->>>>>>> FETCH_HEAD
 autocmd BufKill WinEnter * call <SID>UpdateList('WinEnter')
 autocmd BufKill BufEnter * call <SID>UpdateList('BufEnter')
 autocmd BufKill WinLeave * call <SID>UpdateLastColumn('WinLeave')
 autocmd BufKill BufLeave * call <SID>UpdateLastColumn('BufLeave')
-<<<<<<< HEAD
-=======
 augroup END
->>>>>>> FETCH_HEAD
 
 " Cleanup and modelines {{{1
 let &cpo = s:save_cpo
 
 " vim:ft=vim:fdm=marker:fen:fmr={{{,}}}:
-
